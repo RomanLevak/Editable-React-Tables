@@ -1,0 +1,121 @@
+@import './colors';
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open-Sans', 'Arial Narrow', Arial, sans-serif;
+    background-color: @light-green;
+}
+
+.wrap {
+    position: absolute;
+    left: 5px;
+    width: 75%;
+    margin: 0 auto;
+    position: relative;
+    top: 25px;
+}
+
+.title {
+    margin: -25px 20px 0;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 400;
+}
+
+#main-table {
+    width: 100%;
+    min-width: 1024px;
+    border-radius: 8px;
+    table-layout: fixed;
+    margin-top: 5px;
+    border-collapse: collapse;
+    &:focus {
+        outline: none;
+        border: none;
+    }
+    thead {
+        user-select: none;
+    }
+}
+
+.table-row {
+    position: relative;
+    &-head {
+        height: 20px;
+        border-bottom: 1px solid #000;
+        .cell {
+            background-color: @gray-light;
+            &:hover {
+                background-color: @gray;
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.cell {
+    border: 1px solid #000;
+    position: relative;
+    text-align: center;
+    font-size: 17px;
+    height: 24px;
+    background-color: #fff;
+    padding: 0;
+    box-sizing: border-box;
+    &-game {
+        cursor: default;
+        width: 20px;
+    }
+    &-item:hover {
+        cursor: pointer;
+    }
+}
+
+&.delete-btn {
+    text-align: left;
+    height: 24px;
+    position: relative;
+    img {
+        position: absolute;
+        margin-left: 2px;
+        height: 20px;
+        width: 20px;
+        top: 50%;
+        margin-top: -10px;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}
+
+.caret-up:after {
+    content: '';
+    position: absolute;
+    right: 5px;
+    width: 10px;
+    height: 10px;
+    background: url('http://localhost:2725/images/caret-up.png');
+    background-size: contain;
+}
+
+.caret-down:after {
+    content: '';
+    position: absolute;
+    right: 5px;
+    top: 7px;
+    width: 10px;
+    height: 10px;
+    background: url('http://localhost:2725/images/caret-down.png');
+    background-size: contain;
+}
+
+.table-input {
+    padding: 0;
+    border: none;
+    outline: none;
+    text-align: left;
+    font-size: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}

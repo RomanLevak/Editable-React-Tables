@@ -1,0 +1,79 @@
+.menu-button img {
+    width: 35px;
+    height: 35px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.table-menu {
+    background: rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 100%;
+    z-index: 3;
+    text-align: center;
+    padding-bottom: 15px;
+    user-select: none;
+    &__head {
+        display: flex;
+        position: relative;
+        text-align: center;
+        height: 35px;
+        align-items: center;
+        &--title {
+            font-size: 19px;
+            font-weight: 600;
+            margin: 0 auto;
+        }
+        &--btn img {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            right: 4px;
+            top: 50%;
+            margin-top: -12px;
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+    &__items {
+        height: 100%;
+        overflow-y: auto;
+    }
+    &__input.table-input{
+        height: 42px;
+    }
+    &__item.add-btn {
+        margin-top: 0;
+        font-size: 30px;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    &__item {
+        margin: 15px 0 0;
+        padding: 4px;
+        font-size: 18px;
+        &--name {
+            transition: all 0.4s;
+        }
+        &:hover {
+            color: #fff;
+            background-color: #000;
+        }
+        &:hover img {
+            filter: invert(50%) !important
+        }
+        &--img:hover {
+            cursor: pointer;
+        }
+    }
+}
