@@ -1,5 +1,5 @@
 const path = require('path')
-const BrowserSyncPlugin = require('browser-sync-webpack-plugin')
+// const BrowserSyncPlugin = require('browser-sync-webpack-plugin')
 
 module.exports =
 	{
@@ -30,22 +30,14 @@ module.exports =
 		},
 		devtool: 'eval',
 		mode: 'development',
-		watch: true,
-		// devServer: {
-		// 	contentBase: path.join(__dirname, 'public'),
-		// 	compress: true,
-		// 	port: 6060,
-		// 	disableHostCheck: true,
-		// 	historyApiFallback: true,
-		// 	hot: true
-		// },
-		plugins:
-			[
-				new BrowserSyncPlugin
-					({
-						port: 6060,
-						files: ['./public/*.html', './public/styles/*.css'],
-						server: { baseDir: ['public'] }
-					})
-			]
+		// watch: true,
+		// plugins:
+		// 	[
+		// 		new BrowserSyncPlugin
+		// 			({
+		// 				port: 6060,
+		// 				files: ['./public/*.html', './public/styles/*.css'],
+		// 				server: { baseDir: ['public'] }
+		// 			})
+		// 	]
 	}

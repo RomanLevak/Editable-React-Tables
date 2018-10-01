@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { saveTable } from './server-api'
 import { isItNumber } from './parse-number'
 
-
 export default class Table extends React.Component
 {
     constructor(props)
@@ -21,24 +20,26 @@ export default class Table extends React.Component
                 edit_value: ''
             }
         this.data = Array.from(this.state.data)  //saving data to go back from sort
-        this.deleted_stack = []  //contains a rows that was deleted for backup (ctrl + z)
-        this.numbers_idx = []   //contains the column indexes where value is number (for sort and parsing)
+        this.deleted_stack = []                 //contains a rows that was deleted for backup (ctrl + z)
+        this.editable = []                     //contains a columns that cannot be editable
+        this.numbers_idx = []                 //contains the column indexes where value is number (for sort and parsing)
         this.state.headers.map((h, i) =>
         {
             if (h.type === 'number')
-                return this.numbers_idx.push(i)
-            else
-                return
+                 this.numbers_idx.push(i)
+            if(h.editable)
+                this.editable.push(i)            
         })
 
         this.sort = this.sort.bind(this)
         this.parseNumberInput = this.parseNumberInput.bind(this)
-        this._showEditor = this._showEditor.bind(this)
-        this._save = this._save.bind(this)
-        this._getEmptyRow = this._getEmptyRow.bind(this)
-        this._getCell = this._getCell.bind(this)
-        this._deleteRow = this._deleteRow.bind(this)
+        this.showEditor = this.showEditor.bind(this)
+        this.save = this.save.bind(this)
+        this.getEmptyRow = this.getEmptyRow.bind(this)
+        this.getCell = this.getCell.bind(this)
+        this.deleteRow = this.deleteRow.bind(this)
         this.parseNumberInput = this.parseNumberInput.bind(this)
+        this.keyboardHandler = this.keyboardHandler.bind(this)
     }
 
     componentWillReceiveProps(nextprops)
@@ -69,12 +70,16 @@ export default class Table extends React.Component
     {
         if (this.state.edit !== null) return         //if some cell is edditing now
 
-        if (e.target.innerHTML === ' Game') return  //this.column can't be edited
-
         let column = e.target.cellIndex;
         let data = Array.from(this.state.data)
         let descending = this.state.sortby === column &&    //if it was click on the column that was already sorted
             !this.state.descending;
+        
+        if (this.numbers_idx.includes(column))
+            data.map((value, i) => 
+            {
+                value[column] = parseFloat(value[column])
+            })
 
         data.sort((a, b) =>
             descending
@@ -92,14 +97,14 @@ export default class Table extends React.Component
             })
     }
 
-    _showEditor(e) 
+    showEditor(e) 
     {
-        let rowidx = parseInt(e.target.dataset.row)
-        let cellidx = e.target.cellIndex
+        let row = parseInt(e.target.dataset.row)
+        let cell = e.target.cellIndex
         let edit_value = ''
 
-        if (this.state.data[rowidx])
-            edit_value = this.state.data[rowidx][cellidx]
+        if (this.state.data[row])
+            edit_value = this.state.data[row][cell]
 
         this.setState
             ({
@@ -108,42 +113,11 @@ export default class Table extends React.Component
                     row: parseInt(e.target.dataset.row),
                     cell: e.target.cellIndex,
                 },
-                edit_value: edit_value
+                edit_value
             })
     }
 
-    _save(e)
-    {
-        e.preventDefault()
-        let input = e.target.firstChild
-        let data = this.state.data.slice()
-
-        if (!data[this.state.edit.row]) //if it is last empty row
-        {
-            let new_arr = new Array(this.state.headers.length)
-            for (let i = 0; i < new_arr.length; i++) 
-            {
-                new_arr[i] = ''
-            }
-            data.push(new_arr)
-        }
-        data[this.state.edit.row][this.state.edit.cell] = input.value
-
-        this.setState
-            ({
-                edit: null,
-                data: data
-            })
-
-        saveTable(this.state.name,
-            {
-                name: this.state.name,
-                headers: this.state.headers,
-                data: data
-            })
-    }
-
-    _deleteRow(e)
+    deleteRow(e)
     {
         let rowidx = parseInt(e.target.dataset.row)
         let data = this.state.data.slice()
@@ -167,25 +141,71 @@ export default class Table extends React.Component
             })
     }
 
+    save(e)
+    {
+        e.preventDefault()
+        let input = e.target.firstChild  || e.target
+        let data = this.state.data.slice()
+        let row = this.state.edit.row
+        let cell = this.state.edit.cell
+
+        if (!data[row]) //if it is last empty row it will be added to data
+        {
+            if(!input.value)
+            {
+                this.setState
+                ({
+                    edit: null,
+                    data: data
+                })
+
+                return
+            }
+            let new_arr = new Array(this.state.headers.length)
+
+            for (let i = 0; i < new_arr.length; ++i) 
+            {
+                new_arr[i] = ''
+            }
+
+            data.push(new_arr)
+        }
+
+        data[row][cell] = input.value
+
+        this.setState
+            ({
+                edit: null,
+                data: data
+            })
+
+        saveTable(this.state.name,
+            {
+                name: this.state.name,
+                headers: this.state.headers,
+                data: data
+            })
+    }
+
     //removes the possibility to defocus on input before saving
-    _blur(e)
+    blur(e)
     {
         e.target.focus()
     }
 
     //returns a cell with value or input
-    _getCell(rowidx, idx, empty_row = false)
+    getCell(rowidx, idx, empty_row = false)
     {
         let edit = this.state.edit
         let content = null
         let input =
-            <form onSubmit={this._save}>
+            <form onSubmit={this.save}>
                 <input data-row={rowidx}
                     ref={'edited_input'}
                     data-cell={idx}
                     autoFocus
                     onChange={this.parseNumberInput}
-                    onBlur={this._blur}
+                    onBlur={this.blur}
                     className='table-input'
                     type="text"
                     value={this.state.edit_value}
@@ -218,14 +238,14 @@ export default class Table extends React.Component
         return td
     }
 
-    _getEmptyRow()
+    getEmptyRow()
     {
         let arr = []
         let last_rowidx = this.state.data.length
 
         for (let i = 0; i < this.state.headers.length; ++i)
         {
-            arr.push(this._getCell(last_rowidx, i, true))
+            arr.push(this.getCell(last_rowidx, i, true))
         }
 
         return arr
@@ -261,6 +281,48 @@ export default class Table extends React.Component
         this.setState({ edit_value: value })
     }
 
+    keyboardHandler(e)
+    {
+        if(e.keyCode!==9 || !this.state.edit)       //the 'tab' key
+            return
+
+        e.preventDefault()
+        let next_row = null
+        let next_cell = null
+        let current_row = this.state.edit.row
+        let current_cell = this.state.edit.cell
+        let shift_pressed = e.shiftKey
+        let columns = this.state.headers.length
+
+        if(shift_pressed)   //sift + tab
+        {   
+             if(current_row == 0 && current_cell == 0) return 
+    
+             let first_cell = this.state.edit.cell === 0
+             next_row = first_cell ? current_row - 1 : current_row,
+             next_cell = first_cell ? columns - 1 : current_cell - 1
+        }
+        else    //tab
+        {
+            if(current_row == this.state.data.length && current_cell == columns - 1) return //the last cell
+
+            let last_cell = columns - 1 === current_cell
+            next_row = last_cell ? current_row + 1 : current_row
+            next_cell = last_cell ? 0 : current_cell + 1
+        }
+
+        this.save(e, e.target)  
+        this.setState
+           ({
+               edit: 
+               {
+                   row: next_row,
+                   cell: next_cell
+               },
+               edit_value: this.data[next_row] ? this.data[next_row][next_cell] : ''
+           }) 
+    }
+
     render()
     {
         return (
@@ -281,23 +343,23 @@ export default class Table extends React.Component
                         }
                     </tr>
                 </thead>
-                <tbody onDoubleClick={this._showEditor}>
+                <tbody onDoubleClick={this.showEditor}>
                     {
                         this.state.data.map((row, rowidx) =>
                             <tr className='table-row' key={rowidx}>
                                 {
                                     row.map((value, idx) =>
                                     {
-                                        return this._getCell(rowidx, idx)
+                                        return this.getCell(rowidx, idx)
                                     })
                                 }
                                 <td className="delete-btn">
-                                    <img onClick={this._deleteRow} data-row={rowidx} src="./images/minus-icon.png" />
+                                    <img onClick={this.deleteRow} data-row={rowidx} src="./images/minus-icon.png" />
                                 </td>
-                            </tr>
-                        )}
+                            </tr>)
+                    }
                     <tr className='table-row'>
-                        {this._getEmptyRow()}
+                        {this.getEmptyRow()}
                     </tr>
                 </tbody>
             </table>)
